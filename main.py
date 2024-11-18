@@ -22,3 +22,4 @@ exchange_rate = get_exchange_rate(base_currency, target_currency)
 if exchange_rate is not None:
     converted_amount = amount * exchange_rate
     print(f"{amount} {base_currency} sind {converted_amount:.2f} {target_currency}")
+#
