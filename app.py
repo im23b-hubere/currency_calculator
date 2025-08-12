@@ -18,6 +18,15 @@ def get_exchange_rate(base_currency, target_currency):
     except requests.exceptions.RequestException as e:
         return None
 
+def validate_currency(currency):
+    """Überprüft ob eine Währung gültig ist"""
+    valid_currencies = [
+        'EUR', 'USD', 'CHF', 'GBP', 'JPY', 'CAD', 'AUD', 'CNY', 'NZD', 'SEK',
+        'NOK', 'DKK', 'PLN', 'CZK', 'HUF', 'RUB', 'TRY', 'BRL', 'MXN', 'INR',
+        'KRW', 'SGD', 'HKD', 'THB', 'MYR', 'IDR', 'PHP', 'VND', 'BDT', 'PKR'
+    ]
+    return currency.upper() in valid_currencies
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -30,10 +39,23 @@ def convert():
         target_currency = data.get('target_currency', '').upper()
         amount = float(data.get('amount', 0))
         
-        if not base_currency or not target_currency or amount <= 0:
+        # Validiere Währungen
+        if not validate_currency(base_currency):
             return jsonify({
                 'success': False,
-                'message': 'Bitte geben Sie gültige Werte ein.'
+                'message': f'"{base_currency}" ist keine gültige Währung.'
+            })
+        
+        if not validate_currency(target_currency):
+            return jsonify({
+                'success': False,
+                'message': f'"{target_currency}" ist keine gültige Währung.'
+            })
+        
+        if amount <= 0:
+            return jsonify({
+                'success': False,
+                'message': 'Der Betrag muss größer als 0 sein.'
             })
         
         exchange_rate = get_exchange_rate(base_currency, target_currency)
@@ -41,7 +63,7 @@ def convert():
         if exchange_rate is None:
             return jsonify({
                 'success': False,
-                'message': f'Die Währung {target_currency} ist nicht verfügbar oder ein Fehler ist aufgetreten.'
+                'message': f'Fehler beim Abrufen des Wechselkurses für {base_currency} → {target_currency}.'
             })
         
         converted_amount = amount * exchange_rate
